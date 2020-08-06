@@ -264,18 +264,10 @@ export class SR5ItemSheet extends ItemSheet {
         return $(this.element).find('.tab.active .scroll-area');
     }
 
-    /** There exist a very specific timing issue when triggering these conditions:
-     * - Have a very, very specific latency / timing to the server
-     *      (for example: local network server connected with a tablet pc over wifi but with no power cable connected
-     *      - no, I'm not joking) - taM
-     * - Within the same item open and close two embedded items consecutively, each triggering a
-     *  -- unsetFlag => update with null
-     *  -- setFlag => update with data
-     * - The first embedded item will visually close but keep it's internal _state as RENDERED.
-     * - The second embedded item will do the do same.
-     * - Since the fist embedded items app is stored as RENDERED, it will show a window at the next _render since it's
-     *   told to render with current data.
-     * - This will repeat for each closed embedded item app, so long as two or more embedded apps have been opened.
+    /** This is needed to circumvent Application.close setting closed state early, due to it's async animation
+     * - The length of the closing animation can't be longer then any await time in the closing cycle
+     * - FormApplication._onSubmit will otherwise set ._state to RENDERED even if the Application window has closed already
+     * - Subsequent render calls then will show the window again, due to it's state
      *
      * @private
      */
